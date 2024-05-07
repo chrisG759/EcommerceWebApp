@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homepage</title>
+    <style>
+        body {
+            text-align: center;
+            background-color: #ffa8B6;
+            color: white;
+            font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+        }
+        .header{
+            text-align: center;
+            background-color: red;
+            display: inline-block;
+            padding-bottom: 1cm;
+            border-radius: 2cm;
+        }
+        ul {
+            list-style-type: none;
+            justify-content: center;
+            display: flex;
+            margin: 0 auto;
+            margin-right: 3.5cm;
+            margin-top: 1cm;
+        }
+        li {
+            margin-left: 2cm;
+        }
+        a {
+            color: black;
+            font-size: 18px;
+        }
+        a::before {
+            color: grey;
+        }
+        .account_links {
+            margin-top: 5cm;
+        }
+        .account_links button {
+            width: 5cm;
+            height: 1cm;
+            background-color: red;
+            color: white;
+            border-radius: 1cm;
+            border: 0;
+            margin-left: 1cm;
+            margin-right: 1cm;
+            cursor: pointer;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="name">
+        <h1>Eccomerce Worldwide</h1>
+    </div>
+    <div class="header">
+        <ul>
+            <a href="base.html"><li>Home</li></a>
+            <a href=""><li>Products</li>
+            </a><a href=""><li>Cart</li></a>
+            <a href=""><li>Leave a Review</li></a> 
+        </ul>
+    </div>
+    <div class="account_links">
+        <button type="button" id="login">Login</button>
+        <button type="button" id="register">Register</button>
+    </div>
+</body>
+</html>
