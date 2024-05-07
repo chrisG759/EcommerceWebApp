@@ -54,6 +54,7 @@
     </style>
 </head>
 <body>
+    
     <div class="name">
         <h1>Eccomerce Worldwide</h1>
     </div>
@@ -65,11 +66,12 @@
             <a href=""><li>Leave a Review</li></a> 
         </ul>
     </div>
-    {% block body %}{% endblock %}
+    {% block body %}
     <div class="account_links">
         <a><button type="button" id="login" onclick="redirect_login()">Login</button></a>
         <button type="button" id="register">Register</button>
     </div>
+    {% endblock %}
     <script>
         function redirect_login () {
             window.location.href = '/login'
