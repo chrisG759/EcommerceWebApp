@@ -1,6 +1,4 @@
 from flask import Flask, redirect, url_for, render_template
-import sqlite3
-from sqlalchemy import sql
 
 app = Flask(__name__)
 
@@ -8,6 +6,9 @@ app = Flask(__name__)
 def home():
     return render_template('base.html')
 
+@app.route('/login')
+def login():
+    return render_template('login.html')
 
 if __name__ == '__main__':
     app.run(debug=True)

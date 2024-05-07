@@ -1,3 +1,24 @@
+python code:
+from flask import Flask, redirect, url_for, render_template
+import sqlite3
+from sqlalchemy import sql
+
+app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return render_template('base.html')
+
+@app.route('/login')
+def login():
+    return render_template('/login')
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
+base.html:
+{% extends "base.html" %}
+{% block body %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -54,26 +75,30 @@
     </style>
 </head>
 <body>
+    
     <div class="name">
         <h1>Eccomerce Worldwide</h1>
     </div>
     <div class="header">
         <ul>
-            <a href=""><li>Home</li></a>
-            <a href=""><li>Products</li></a>
-            <a href=""><li>Cart</li></a>
+            <a href="base.html"><li>Home</li></a>
+            <a href=""><li>Products</li>
+            </a><a href=""><li>Cart</li></a>
             <a href=""><li>Leave a Review</li></a> 
         </ul>
     </div>
-    {% block body %}{% endblock %}
+    
+    {% endblock %}
     <div class="account_links">
-        <a><button type="button" id="login" onclick="redirect_login()">Login</button></a>
+        <a href="{{ url_for('login') }}"><button type="button" id="login">Login</button></a>
         <button type="button" id="register">Register</button>
     </div>
-    <script>
-        function redirect_login () {
-            window.location.href = '/login'
-        }
-    </script>
 </body>
 </html>
+
+login.html:
+{% extends "base.html" %}
+{% endblock %}
+<body>
+    <p>hello</p>
+</body>
