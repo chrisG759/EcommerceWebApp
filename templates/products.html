@@ -49,15 +49,14 @@
 <body>
     <h1>Products</h1>
     <div class="product-container">
-        {% for item in items %}
+        {% for product in products %}
         <div class="product-tile">
-            <img class="product-image" src="{{ item.image_url }}" alt="{{ item.Title }}">
-            <div class="product-title">{{ item.Title }}</div>
-            <div class="product-description">{{ item.Description }}</div>
-            <div class="product-price">${{ item.Price }}</div>
-            <!-- Add a form around the button -->
-            <form method="post" action="{{ url_for('add_to_cart', product_id=item.Product_ID) }}">
-                <button class="add-to-cart-btn" type="submit">Add to Cart</button>
+            <img class="product-image" src="{{ product.image_url }}" alt="{{ product.Title }}">
+            <div class="product-title">{{ product.Title }}</div>
+            <div class="product-description">{{ product.Description }}</div>
+            <div class="product-price">${{ product.Price }}</div> <!-- Assuming price is in USD -->
+            <form action="{{ url_for('add_to_cart', product_id=product.Product_ID) }}" method="post">
+                <button type="submit" class="add-to-cart-btn">Add to Cart</button>
             </form>
         </div>
         {% endfor %}
