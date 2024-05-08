@@ -170,7 +170,6 @@ def products():
     if 'user_id' not in session:
         return redirect(url_for('login'))
     user = User.query.get(session['user_id'])
-    # Assuming you have a products.html template to render the products
     products = Product.query.all()
     return render_template('products.html', user=user, products=products)
 
