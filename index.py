@@ -1,10 +1,28 @@
-from flask import Flask, render_template, request, redirect, url_for
-from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
-from flask import flash
-
+from flask import Flask, redirect, url_for, render_template
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'secret_key'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://chris:sirhc@172.16.181.82/fp180'
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=5)
+db = SQLAlchemy(app)
+
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(50), unique=True, nullable=False)
+    email = db.Column(db.String(100), nullable=False)
+    first_name = db.Column(db.String(50), nullable=False)
+    last_name = db.Column(db.String(50), nullable=False)
+    password = db.Column(db.String(100), nullable=False)
+
+class Admin(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(50), unique=True, nullable=False)
+    password = db.Column(db.String(100), nullable=False)
+
+class Vendor(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(50), unique=True, nullable=False)
+    password = db.Column(db.String(100), nullable=False)
 
 app.config['SECRET_KEY'] = 'key'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://chris:sirhc@172.16.181.82/fp180'
@@ -38,40 +56,30 @@ class Cart(db.Model):
 def home():
     return render_template('base.html')
 
+@app.route('/home')
+def base():
+    return render_template('base.html')
+
+@app.route('/login')
+def login():
+    return render_template('login.html')
+
+@app.route('/register')
+def register ():
+    return render_template('register.html')
+
 @app.route('/products')
-def show_products():
-    all_products = Product.query.all()
-    return render_template('products.html', items=all_products)  # Pass items instead of products
+def products():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    user = User.query.get(session['user_id'])
+    csrf_token = generate_csrf()
+    return render_template('products.html', user=user, csrf_token=csrf_token)
 
-
-@app.route('/add_to_cart/<int:product_id>', methods=['POST'])
-def add_to_cart(product_id):
-    product = Product.query.get_or_404(product_id)
-    if product.Quantity > 0:  # Ensure the product is in stock
-        existing_item = Cart.query.filter_by(product_id=product_id).first()
-        if existing_item:
-            existing_item.quantity += 1
-        else:
-            new_item = Cart(product_id=product_id, quantity=1)
-            db.session.add(new_item)
-        product.Quantity -= 1
-        db.session.commit()
-        flash('Item added to cart', 'success')  # Flash success message
-    else:
-        flash('Item is out of stock', 'danger')  # Flash error message if item is out of stock
-    return redirect(url_for('show_products'))
-
-@app.route('/cart')
-def show_cart():
-    cart_items = Cart.query.all()
-    return render_template('cart.html', cart_items=cart_items)
-
-@app.route('/remove_from_cart/<int:cart_id>', methods=['POST'])
-def remove_from_cart(cart_id):
-    cart_item = Cart.query.get_or_404(cart_id)
-    db.session.delete(cart_item)
-    db.session.commit()
-    return redirect(url_for('show_cart'))
+@app.route('/logout', methods=['POST'])
+def logout():
+    session.pop('user_id', None)
+    return redirect(url_for('login'))
 
 if __name__ == '__main__':
     app.run(debug=True)
