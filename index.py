@@ -39,24 +39,12 @@ def login():
         
         user = User.query.filter_by(username=username).first()
         
-        if user:
-            if user.approved:
-                if user.password == password:
-                    session['user_id'] = user.id
-                    session.permanent = True
-                    return redirect(url_for('dashboard'))
-                else:
-                    flash('Invalid username or password', 'error')
-            else:
-                flash('Your account is still pending approval by the admin', 'warning')
+        if user.password == password:
+            session['user_id'] = user.id
+            session.permanent = True
+            return redirect(url_for('products'))
         else:
-            new_user = User(username=username, password=password)
-            db.session.add(new_user)
-            db.session.commit()
-            session['user_id'] = new_user.id
-            session.permanent = True  
-            flash('Account created successfully. Your account is pending approval by the admin', 'success')
-            return redirect(url_for('dashboard'))
+            flash('Invalid username or password', 'error')
     
     return render_template('login.html')
 
@@ -98,17 +86,17 @@ def register():
         
         session['user_id'] = new_user.id
         
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('products'))
     
     return render_template('register.html')
 
-@app.route('/dashboard')
-def dashboard():
+@app.route('/products')
+def products():
     if 'user_id' not in session:
         return redirect(url_for('login'))
     user = User.query.get(session['user_id'])
     csrf_token = generate_csrf()
-    return render_template('dashboard.html', user=user, csrf_token=csrf_token)
+    return render_template('products.html', user=user, csrf_token=csrf_token)
 
 @app.route('/logout', methods=['POST'])
 def logout():
