@@ -117,8 +117,9 @@ def products():
     if 'user_id' not in session:
         return redirect(url_for('login'))
     user = User.query.get(session['user_id'])
-    csrf_token = generate_csrf()
-    return render_template('products.html', user=user, csrf_token=csrf_token)
+    # Assuming you have a products.html template to render the products
+    products = Product.query.all()
+    return render_template('products.html', user=user, products=products)
 
 @app.route('/logout', methods=['POST'])
 def logout():
