@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Products</title>
+    <style>
+        .product-tile {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin: 10px;
+            width: 200px;
+            height: 300px; /* Set a fixed height for each product tile */
+            display: inline-block;
+            vertical-align: top;
+            position: relative; /* Add position relative to contain absolute positioned button */
+        }
+        .product-image {
+            width: 150px;
+            height: 150px; /* Set a fixed height for the images */
+            margin-bottom: 10px;
+            object-fit: contain; /* Maintain aspect ratio and fit within container */
+        }
+        .product-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .product-description {
+            margin-bottom: 10px;
+        }
+        .product-price {
+            font-weight: bold;
+            color: #007bff; /* Change color for price */
+        }
+        .add-to-cart-btn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            position: absolute; /* Position button within tile */
+            bottom: 10px; /* Adjust position from bottom */
+            left: 50%; /* Center button horizontally */
+            transform: translateX(-50%); /* Center button horizontally */
+        }
+    </style>
+</head>
+<body>
+    <h1>Products</h1>
+    <div class="product-container">
+        {% for item in items %}
+        <div class="product-tile">
+            <img class="product-image" src="{{ item.image_url }}" alt="{{ item.Title }}">
+            <div class="product-title">{{ item.Title }}</div>
+            <div class="product-description">{{ item.Description }}</div>
+            <div class="product-price">${{ item.Price }}</div>
+            <!-- Add a form around the button -->
+            <form method="post" action="{{ url_for('add_to_cart', product_id=item.Product_ID) }}">
+                <button class="add-to-cart-btn" type="submit">Add to Cart</button>
+            </form>
+        </div>
+        {% endfor %}
+    </div>
+</body>
+</html>
