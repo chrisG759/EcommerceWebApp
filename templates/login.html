@@ -1,53 +1,11 @@
 {% extends "base.html" %}
-
-{% block body %}
-<html>
-    <head>
-        <title>Login</title>
-        <style>
-            body {
-                text-align: center;
-            }
-            #login {
-                text-align: center;
-                margin-top: 3cm;
-            }
-            #input_boxes {
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-                margin: 0 auto;
-                width: 5cm;
-                margin-bottom: 1cm;
-            }
-            #input_boxes input{
-                margin-bottom: .5cm;
-                height: 1cm;
-                width: 5cm;
-                border: 0;
-                border-radius: 3px;
-                background-color: red;
-            }
-            input::placeholder {
-                color: white;
-                text-align: center;
-            }
-            input::first-line {
-                margin-left: 20px;
-            }
-        </style>
-    </head>
-    <body>
-        <div id="login">
-            <div id="input_boxes">
-                <input type="text" placeholder="Username">
-                <input type="password" placeholder="Password">
-            </div>
-           
-            <a href="/register"><p>Do not have an account?</p></a>
-            <button>Login</button>
-        </div>
-    </body>
-</html>
+{% block heading %}Login{% endblock %}
+{% block content %}
+    <form action="/login" method="POST">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required><br><br>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required><br><br>
+        <button type="submit">Login</button>
+    </form>
 {% endblock %}
-

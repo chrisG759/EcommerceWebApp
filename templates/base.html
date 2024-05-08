@@ -3,73 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Banking Web App{% endblock %}</title>
     <style>
         body {
-            text-align: center;
-            background-color: #ffa8B6;
-            color: white;
-            font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
         }
-        .header{
-            text-align: center;
-            background-color: red;
-            display: inline-block;
-            padding-bottom: 1cm;
-            border-radius: 2cm;
-        }
-        ul {
-            list-style-type: none;
-            justify-content: center;
-            display: flex;
+    
+        .container {
+            max-width: 800px;
             margin: 0 auto;
-            margin-right: 3.5cm;
-            margin-top: 1cm;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
-        li {
-            margin-left: 2cm;
+    
+        h1, h2, h3 {
+            color: #333;
         }
-        a {
-            color: black;
-            font-size: 18px;
+    
+        form {
+            margin-top: 20px;
         }
-        a::before {
-            color: grey;
+    
+        input[type="text"], input[type="password"], input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            box-sizing: border-box;
         }
-        .account_links {
-            margin-top: 5cm;
-        }
-        .account_links button {
-            width: 5cm;
-            height: 1cm;
-            background-color: red;
-            color: white;
-            border-radius: 1cm;
-            border: 0;
-            margin-left: 1cm;
-            margin-right: 1cm;
+    
+        input[type="submit"], .nav a, #logout-link {
+            background-color: transparent;
+            color: #007bff;
+            border: none;
+            padding: 0;
             cursor: pointer;
+            border-radius: 0;
+            text-decoration: none;
             font-size: 16px;
         }
+    
+        input[type="submit"]:hover, .nav a:hover, #logout-link:hover {
+            text-decoration: none;
+        }
+    
+        .error {
+            color: red;
+            margin-top: 5px;
+        }
+    
+        .success {
+            color: green;
+            margin-top: 5px;
+        }
+    
+        .nav {
+            margin-top: 20px;
+            text-align: center;
+        }
+    
+        .nav a {
+            margin-right: 10px;
+            text-decoration: none;
+            color: #007bff;
+        }
     </style>
+    
 </head>
 <body>
-    
-    <div class="name">
-        <h1>Ecommerce Worldwide</h1>
+    <div class="container">
+        <h1>{% block heading %}{% endblock %}</h1>
+        {% block content %}{% endblock %}
     </div>
-    <div class="header">
-        <ul>
-            <a href="/home"><li>Home</li></a>
-            <a href=""><li>Products</li></a>
-            <a href=""><li>Cart</li></a>
-            <a href=""><li>Leave a Review</li></a> 
-        </ul>
+    <div class="nav">
+        <a href="/">Home</a>
+        <a href="/login">Login</a>
+        <a href="/register">Register</a>
+        <a href="/dashboard">Dashboard</a>
+        <a href="/admin/login">Admin Login</a>
+        <form id="logout-form" action="/logout" method="post" style="display: inline;">
+            <input type="submit" value="Logout">
+            <!-- Include CSRF token -->
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        </form>
     </div>
-    {% block body %}
-    <div class="account_links">
-        <a href="/login"><button type="button" id="login">Login</button></a>
-        <a href="/register"><button type="button" id="register">Register</button></a>
-    </div>
-    {% endblock %}
+    <script>
+        document.getElementById('logout-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            this.submit();
+        });
+    </script>
 </body>
 </html>
