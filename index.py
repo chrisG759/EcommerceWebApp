@@ -1,4 +1,4 @@
-from datetime import  timedelta
+from datetime import  timedelta, datetime, timezone
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf.csrf import generate_csrf
@@ -32,24 +32,22 @@ class Product(db.Model):
     Product_ID = db.Column(db.Integer, primary_key=True)
     Title = db.Column(db.Text, nullable=False)
     Description = db.Column(db.Text, nullable=False)
-    Price = db.Column(db.Numeric(10, 2), nullable=False)  # Use db.Numeric for decimals
+    Price = db.Column(db.Numeric(10, 2), nullable=False)
     image_url = db.Column(db.Text, nullable=False)
     Quantity = db.Column(db.Integer, nullable=False)
 
     def __init__(self, Title, Description, Price, image_url, Quantity):
         self.Title = Title
         self.Description = Description
-        self.Price = Price  # Price is now a decimal type, so no conversion is needed
+        self.Price = Price
         self.image_url = image_url
         self.Quantity = Quantity
-
-
 
 class Cart(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     product_id = db.Column(db.Integer, nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
-    date_added = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    date_added = db.Column(db.DateTime, nullable=False, default=datetime.now(timezone.utc))
 
 @app.route('/')
 def home():
