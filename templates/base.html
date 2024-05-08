@@ -89,7 +89,6 @@
         <a href="/admin/login">Admin Login</a>
         <form id="logout-form" action="/logout" method="post" style="display: inline;">
             <input type="submit" value="Logout">
-            <!-- Include CSRF token -->
             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
         </form>
     </div>
