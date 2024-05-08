@@ -1,4 +1,6 @@
-from flask import Flask, redirect, url_for, render_template
+from flask import Flask, redirect, url_for, render_template, session
+from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret_key'
@@ -24,10 +26,6 @@ class Vendor(db.Model):
     username = db.Column(db.String(50), unique=True, nullable=False)
     password = db.Column(db.String(100), nullable=False)
 
-app.config['SECRET_KEY'] = 'key'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://chris:sirhc@172.16.181.82/fp180'
-db = SQLAlchemy(app)
-
 class Product(db.Model):
     __tablename__ = 'products'
     Product_ID = db.Column(db.Integer, primary_key=True)
@@ -43,8 +41,6 @@ class Product(db.Model):
         self.Price = Price  # Price is now a decimal type, so no conversion is needed
         self.image_url = image_url
         self.Quantity = Quantity
-
-
 
 class Cart(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -73,8 +69,9 @@ def products():
     if 'user_id' not in session:
         return redirect(url_for('login'))
     user = User.query.get(session['user_id'])
-    csrf_token = generate_csrf()
-    return render_template('products.html', user=user, csrf_token=csrf_token)
+    # Assuming you have a products.html template to render the products
+    products = Product.query.all()
+    return render_template('products.html', user=user, products=products)
 
 @app.route('/logout', methods=['POST'])
 def logout():
