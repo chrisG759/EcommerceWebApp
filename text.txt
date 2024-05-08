@@ -1,104 +1,269 @@
-python code:
-from flask import Flask, redirect, url_for, render_template
-import sqlite3
-from sqlalchemy import sql
+python file:
+from datetime import  timedelta, datetime, timezone
+from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask_sqlalchemy import SQLAlchemy
+
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'secret_key'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://chris:sirhc@172.16.181.82/fp180'
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=5)
+db = SQLAlchemy(app)
+
+class User(db.Model):
+    __tablename__ = 'users'
+    User_ID = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    username = db.Column(db.String(255), nullable=False)
+    email = db.Column(db.String(255), nullable=False)
+    first_name = db.Column(db.String(255), nullable=False)
+    last_name = db.Column(db.String(255), nullable=False)
+    password = db.Column(db.String(255), nullable=False)
+
+
+
+class Admin(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(50), unique=True, nullable=False)
+    password = db.Column(db.String(100), nullable=False)
+
+class Vendor(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(50), unique=True, nullable=False)
+    password = db.Column(db.String(100), nullable=False)
+
+class Product(db.Model):
+    __tablename__ = 'products'
+    Product_ID = db.Column(db.Integer, primary_key=True)
+    Title = db.Column(db.Text, nullable=False)
+    Description = db.Column(db.Text, nullable=False)
+    Price = db.Column(db.Numeric(10, 2), nullable=False)
+    image_url = db.Column(db.Text, nullable=False)
+    Quantity = db.Column(db.Integer, nullable=False)
+
+    def __init__(self, Title, Description, Price, image_url, Quantity):
+        self.Title = Title
+        self.Description = Description
+        self.Price = Price
+        self.image_url = image_url
+        self.Quantity = Quantity
+
+class Cart(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    product_id = db.Column(db.Integer, nullable=False)
+    quantity = db.Column(db.Integer, nullable=False)
+    date_added = db.Column(db.DateTime, nullable=False, default=datetime.now(timezone.utc))
 
 @app.route('/')
 def home():
     return render_template('base.html')
 
-@app.route('/login')
+@app.route('/login', methods=['GET', 'POST'])
 def login():
-    return render_template('/login')
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        
+        user = User.query.filter_by(username=username).first()
+        
+        if user and user.password == password:
+            session['user_id'] = user.User_ID  # Corrected attribute name
+            session.permanent = True
+            return redirect(url_for('products'))
+        else:
+            flash('Invalid username or password', 'error')
+    
+    return render_template('login.html')
+
+@app.route('/add_to_cart', methods=['POST'])
+def add_to_cart():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))  # Redirect to login if user is not logged in
+
+    user_id = session['user_id']  # Get the user_id from the session
+
+    # Extract product_id and quantity from the request
+    product_id = request.form['product_id']
+    quantity = request.form['quantity']
+
+    # Now insert the product into the cart with the user_id
+    cart_item = Cart(user_id=user_id, product_id=product_id, quantity=quantity)
+    db.session.add(cart_item)
+    db.session.commit()
+
+    flash('Product added to cart successfully', 'success')
+    return redirect(url_for('cart'))  # Redirect to the cart page
+
+
+@app.route('/admin/login', methods=['GET', 'POST'])
+def admin_login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        
+        admin = Admin.query.filter_by(username=username, password=password).first()
+        
+        if admin:
+            session['admin_id'] = admin.id
+            return redirect(url_for('admin'))
+        else:
+            flash('Invalid username or password', 'error')
+    
+    return render_template('admin_login.html')
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form['username']
+        email = request.form['email']
+        first_name = request.form['first_name']
+        last_name = request.form['last_name']
+        password = request.form['password']
+        
+        new_user = User(
+            username=username,
+            email=email,
+            first_name=first_name,
+            last_name=last_name,
+            password=password,
+        )
+        
+        db.session.add(new_user)
+        db.session.commit()
+        
+        session['user_id'] = new_user.User_ID  # Corrected attribute name
+        
+        return redirect(url_for('products'))
+    
+    return render_template('register.html')
+
+
+@app.route('/products')
+def products():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    user = User.query.get(session['user_id'])
+    # Assuming you have a products.html template to render the products
+    products = Product.query.all()
+    return render_template('products.html', user=user, products=products)
+
+@app.route('/logout', methods=['POST'])
+def logout():
+    session.pop('user_id', None)
+    return redirect(url_for('login'))
 
 if __name__ == '__main__':
     app.run(debug=True)
 
-base.html:
-{% extends "base.html" %}
-{% block body %}
+
+products.html:
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Homepage</title>
+    <title>Products</title>
     <style>
-        body {
-            text-align: center;
-            background-color: #ffa8B6;
-            color: white;
-            font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
-        }
-        .header{
-            text-align: center;
-            background-color: red;
+        .product-tile {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin: 10px;
+            width: 200px;
+            height: 300px; /* Set a fixed height for each product tile */
             display: inline-block;
-            padding-bottom: 1cm;
-            border-radius: 2cm;
+            vertical-align: top;
+            position: relative; /* Add position relative to contain absolute positioned button */
         }
-        ul {
-            list-style-type: none;
-            justify-content: center;
-            display: flex;
-            margin: 0 auto;
-            margin-right: 3.5cm;
-            margin-top: 1cm;
+        .product-image {
+            width: 150px;
+            height: 150px; /* Set a fixed height for the images */
+            margin-bottom: 10px;
+            object-fit: contain; /* Maintain aspect ratio and fit within container */
         }
-        li {
-            margin-left: 2cm;
+        .product-title {
+            font-weight: bold;
+            margin-bottom: 5px;
         }
-        a {
-            color: black;
-            font-size: 18px;
+        .product-description {
+            margin-bottom: 10px;
         }
-        a::before {
-            color: grey;
+        .product-price {
+            font-weight: bold;
+            color: #007bff; /* Change color for price */
         }
-        .account_links {
-            margin-top: 5cm;
-        }
-        .account_links button {
-            width: 5cm;
-            height: 1cm;
-            background-color: red;
+        .add-to-cart-btn {
+            background-color: #007bff;
             color: white;
-            border-radius: 1cm;
-            border: 0;
-            margin-left: 1cm;
-            margin-right: 1cm;
+            border: none;
+            padding: 5px 10px;
             cursor: pointer;
-            font-size: 16px;
+            border-radius: 5px;
+            position: absolute; /* Position button within tile */
+            bottom: 10px; /* Adjust position from bottom */
+            left: 50%; /* Center button horizontally */
+            transform: translateX(-50%); /* Center button horizontally */
         }
     </style>
 </head>
 <body>
-    
-    <div class="name">
-        <h1>Eccomerce Worldwide</h1>
-    </div>
-    <div class="header">
-        <ul>
-            <a href="base.html"><li>Home</li></a>
-            <a href=""><li>Products</li>
-            </a><a href=""><li>Cart</li></a>
-            <a href=""><li>Leave a Review</li></a> 
-        </ul>
-    </div>
-    
-    {% endblock %}
-    <div class="account_links">
-        <a href="{{ url_for('login') }}"><button type="button" id="login">Login</button></a>
-        <button type="button" id="register">Register</button>
+    <h1>Products</h1>
+    <div class="product-container">
+        {% for product in products %}
+        <div class="product-tile">
+            <img class="product-image" src="{{ product.image_url }}" alt="{{ product.Title }}">
+            <div class="product-title">{{ product.Title }}</div>
+            <div class="product-description">{{ product.Description }}</div>
+            <div class="product-price">${{ product.Price }}</div> <!-- Assuming price is in USD -->
+            <form action="{{ url_for('add_to_cart', product_id=product.Product_ID) }}" method="post">
+                <button type="submit" class="add-to-cart-btn">Add to Cart</button>
+            </form>
+        </div>
+        {% endfor %}
     </div>
 </body>
 </html>
 
-login.html:
-{% extends "base.html" %}
-{% endblock %}
+cart.html:
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cart</title>
+</head>
 <body>
-    <p>hello</p>
+    <h1>Your Cart</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>Quantity</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in cart_items %}
+            <tr>
+                <td>{{ item.product.Title }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>
+                    <form action="/remove_from_cart" method="post">
+                        <input type="hidden" name="cart_item_id" value="{{ item.id }}">
+                        <button type="submit">Remove</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Form to add a new product to the cart -->
+    <h2>Add Product to Cart</h2>
+    <form action="/add_to_cart" method="post">
+        <label for="product_id">Product ID:</label>
+        <input type="text" name="product_id" id="product_id">
+        <label for="quantity">Quantity:</label>
+        <input type="text" name="quantity" id="quantity">
+        <button type="submit">Add to Cart</button>
+    </form>
 </body>
+</html>

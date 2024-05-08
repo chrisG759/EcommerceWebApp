@@ -4,30 +4,93 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cart</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .actions {
+            text-align: center;
+        }
+        .actions button {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        .actions button:hover {
+            background-color: #d32f2f;
+        }
+        #back_to_shot {
+            margin: 0 auto;
+            text-align: center;
+        }
+        #back_to_shop, a, button {
+            display: inline-block;
+            justify-content: center;
+            background-color: lightblue;
+        }
+        #back_to_shop, a, button:hover {
+            background-color: #4b86b4; /* Medium blue on hover */
+        }
+    </style>
 </head>
 <body>
-    <h1>Shopping Cart</h1>
-    <table>
-        <thead>
-            <tr>
-                <th>Product</th>
-                <th>Price</th>
-                <th>Quantity</th>
-                <th>Total</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in cart_items %}
-            <tr>
-                <td>{{ item.product.title }}</td>
-                <td>${{ item.product.price }}</td>
-                <td>{{ item.quantity }}</td>
-                <td>${{ item.product.price * item.quantity }}</td>
-                <td><a href="{{ url_for('remove_from_cart', cart_id=item.id) }}">Remove</a></td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="container">
+        <h1>Your Cart</h1>
+        <table>
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Quantity</th>
+                    <th class="actions">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in cart_items %}
+                <tr>
+                    <td>{{ item.product.Title }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td class="actions">
+                        <form action="/remove_from_cart" method="post">
+                            <input type="hidden" name="cart_item_id" value="{{ item.id }}">
+                            <button type="submit">Remove</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div id="back_to_shop">
+        <a href="/products"><button>Back To Shop</button></a>
+    </div>
+    
 </body>
 </html>

@@ -9,6 +9,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://chris:sirhc@172.16.181.82/fp180
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=15)
 db = SQLAlchemy(app)
 
+from sqlalchemy.orm import relationship
+
 class User(db.Model):
     __tablename__ = 'users'
     User_ID = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -17,6 +19,9 @@ class User(db.Model):
     first_name = db.Column(db.String(255), nullable=False)
     last_name = db.Column(db.String(255), nullable=False)
     password = db.Column(db.String(255), nullable=False)
+
+    carts = relationship('Cart', backref='user')  # Define the relationship
+
 
 
 
@@ -46,11 +51,19 @@ class Product(db.Model):
         self.image_url = image_url
         self.Quantity = Quantity
 
+from sqlalchemy.orm import relationship
+
 class Cart(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    product_id = db.Column(db.Integer, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.User_ID'), nullable=False)
+    product_id = db.Column(db.Integer, db.ForeignKey('products.Product_ID'), nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
     date_added = db.Column(db.DateTime, nullable=False, default=datetime.now(timezone.utc))
+
+    # Define the relationship with Product
+    product = relationship('Product', backref='carts')
+
+
 
 @app.route('/')
 def home():
@@ -73,31 +86,40 @@ def login():
     
     return render_template('login.html')
 
-@app.route('/add_to_cart/<int:product_id>', methods=['POST'])
-def add_to_cart(product_id):
+@app.route('/cart')
+def cart():
     if 'user_id' not in session:
-        flash('Please log in to add products to your cart', 'error')
         return redirect(url_for('login'))
-
-    # Retrieve the user's ID from the session
+    
+    # Fetch the current user's cart items
     user_id = session['user_id']
+    user = User.query.get(user_id)
+    cart_items = user.carts  # Assuming 'carts' is the relationship name
+    
+    return render_template('cart.html', cart_items=cart_items)
 
-    # Retrieve the product from the database based on the product_id
-    product = Product.query.get(product_id)
 
-    # Check if the product exists
-    if product is None:
-        flash('Product not found', 'error')
-        return redirect(url_for('products'))
+@app.route('/add_to_cart', methods=['POST'])
+def add_to_cart():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))  # Redirect to login if user is not logged in
 
-    # Create a new entry in the Cart table for the current user and product
-    cart_item = Cart(product_id=product_id, quantity=1)
+    user_id = session['user_id']  # Get the user_id from the session
+
+    # Extract product_id and quantity from the request
+    product_id = request.form['product_id']
+    quantity = int(request.form['quantity'])  # Convert quantity to integer
+
+    # Now insert the product into the cart with the user_id
+    cart_item = Cart(user_id=user_id, product_id=product_id, quantity=quantity)
     db.session.add(cart_item)
     db.session.commit()
 
-    flash(f'{product.Title} added to cart', 'success')
+    flash('Product added to cart successfully', 'success')
+    return redirect(url_for('cart'))  # Redirect to the cart page
 
-    return redirect(url_for('products'))
+
+
 
 
 @app.route('/admin/login', methods=['GET', 'POST'])
@@ -155,6 +177,28 @@ def products():
 def logout():
     session.pop('user_id', None)
     return redirect(url_for('login'))
+
+@app.route('/remove_from_cart', methods=['POST'])
+def remove_from_cart():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))  # Redirect to login if user is not logged in
+
+    cart_item_id = request.form['cart_item_id']
+
+    # Retrieve the cart item from the database
+    cart_item = Cart.query.get(cart_item_id)
+
+    if cart_item:
+        # Delete the cart item
+        db.session.delete(cart_item)
+        db.session.commit()
+        flash('Product removed from cart successfully', 'success')
+    else:
+        flash('Failed to remove product from cart', 'error')
+
+    # Redirect back to the cart page
+    return redirect(url_for('cart'))
+
 
 if __name__ == '__main__':
     app.run(debug=True)
