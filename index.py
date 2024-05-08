@@ -1,7 +1,7 @@
 from datetime import  timedelta, datetime, timezone
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_sqlalchemy import SQLAlchemy
-from flask_wtf.csrf import generate_csrf
+
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret_key'
@@ -10,12 +10,15 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=5)
 db = SQLAlchemy(app)
 
 class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(50), unique=True, nullable=False)
-    email = db.Column(db.String(100), nullable=False)
-    first_name = db.Column(db.String(50), nullable=False)
-    last_name = db.Column(db.String(50), nullable=False)
-    password = db.Column(db.String(100), nullable=False)
+    __tablename__ = 'users'
+    User_ID = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    username = db.Column(db.String(255), nullable=False)
+    email = db.Column(db.String(255), nullable=False)
+    first_name = db.Column(db.String(255), nullable=False)
+    last_name = db.Column(db.String(255), nullable=False)
+    password = db.Column(db.String(255), nullable=False)
+
+
 
 class Admin(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -61,14 +64,41 @@ def login():
         
         user = User.query.filter_by(username=username).first()
         
-        if user.password == password:
-            session['user_id'] = user.id
+        if user and user.password == password:
+            session['user_id'] = user.User_ID  # Corrected attribute name
             session.permanent = True
             return redirect(url_for('products'))
         else:
             flash('Invalid username or password', 'error')
     
     return render_template('login.html')
+
+@app.route('/add_to_cart/<int:product_id>', methods=['POST'])
+def add_to_cart(product_id):
+    if 'user_id' not in session:
+        flash('Please log in to add products to your cart', 'error')
+        return redirect(url_for('login'))
+
+    # Retrieve the user's ID from the session
+    user_id = session['user_id']
+
+    # Retrieve the product from the database based on the product_id
+    product = Product.query.get(product_id)
+
+    # Check if the product exists
+    if product is None:
+        flash('Product not found', 'error')
+        return redirect(url_for('products'))
+
+    # Create a new entry in the Cart table for the current user and product
+    cart_item = Cart(product_id=product_id, quantity=1)
+    db.session.add(cart_item)
+    db.session.commit()
+
+    flash(f'{product.Title} added to cart', 'success')
+
+    return redirect(url_for('products'))
+
 
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
@@ -106,11 +136,12 @@ def register():
         db.session.add(new_user)
         db.session.commit()
         
-        session['user_id'] = new_user.id
+        session['user_id'] = new_user.User_ID  # Corrected attribute name
         
         return redirect(url_for('products'))
     
     return render_template('register.html')
+
 
 @app.route('/products')
 def products():
