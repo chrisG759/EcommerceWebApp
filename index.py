@@ -60,7 +60,7 @@ class Cart(db.Model):
     quantity = db.Column(db.Integer, nullable=False)
     date_added = db.Column(db.DateTime, nullable=False, default=datetime.now(timezone.utc))
 
-    # Define the relationship with Product
+    
     product = relationship('Product', backref='carts')
 
 
@@ -78,7 +78,7 @@ def login():
         user = User.query.filter_by(username=username).first()
         
         if user and user.password == password:
-            session['user_id'] = user.User_ID  # Corrected attribute name
+            session['user_id'] = user.User_ID  
             session.permanent = True
             return redirect(url_for('products'))
         else:
@@ -91,10 +91,10 @@ def cart():
     if 'user_id' not in session:
         return redirect(url_for('login'))
     
-    # Fetch the current user's cart items
+   
     user_id = session['user_id']
     user = User.query.get(user_id)
-    cart_items = user.carts  # Assuming 'carts' is the relationship name
+    cart_items = user.carts  
     
     return render_template('cart.html', cart_items=cart_items)
 
@@ -102,24 +102,21 @@ def cart():
 @app.route('/add_to_cart', methods=['POST'])
 def add_to_cart():
     if 'user_id' not in session:
-        return redirect(url_for('login'))  # Redirect to login if user is not logged in
+        return redirect(url_for('login'))  
 
-    user_id = session['user_id']  # Get the user_id from the session
+    user_id = session['user_id']  
 
-    # Extract product_id and quantity from the request
+    
     product_id = request.form['product_id']
-    quantity = int(request.form['quantity'])  # Convert quantity to integer
+    quantity = int(request.form['quantity'])  
 
-    # Now insert the product into the cart with the user_id
+    
     cart_item = Cart(user_id=user_id, product_id=product_id, quantity=quantity)
     db.session.add(cart_item)
     db.session.commit()
 
     flash('Product added to cart successfully', 'success')
-    return redirect(url_for('cart'))  # Redirect to the cart page
-
-
-
+    return redirect(url_for('cart'))  
 
 
 @app.route('/admin/login', methods=['GET', 'POST'])
@@ -158,7 +155,7 @@ def register():
         db.session.add(new_user)
         db.session.commit()
         
-        session['user_id'] = new_user.User_ID  # Corrected attribute name
+        session['user_id'] = new_user.User_ID  
         
         return redirect(url_for('products'))
     
@@ -181,22 +178,21 @@ def logout():
 @app.route('/remove_from_cart', methods=['POST'])
 def remove_from_cart():
     if 'user_id' not in session:
-        return redirect(url_for('login'))  # Redirect to login if user is not logged in
+        return redirect(url_for('login'))  
 
     cart_item_id = request.form['cart_item_id']
 
-    # Retrieve the cart item from the database
+    
     cart_item = Cart.query.get(cart_item_id)
 
     if cart_item:
-        # Delete the cart item
         db.session.delete(cart_item)
         db.session.commit()
         flash('Product removed from cart successfully', 'success')
     else:
         flash('Failed to remove product from cart', 'error')
 
-    # Redirect back to the cart page
+
     return redirect(url_for('cart'))
 
 
