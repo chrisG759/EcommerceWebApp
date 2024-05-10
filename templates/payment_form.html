@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .payment-form {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .payment-form label {
+            display: block;
+            margin-bottom: 10px;
+        }
+        .payment-form input[type="text"],
+        .payment-form input[type="number"],
+        .payment-form input[type="submit"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+        }
+        .payment-form input[type="submit"] {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+        .payment-form input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+        .back-to-cart {
+            text-align: center;
+        }
+        .back-to-cart a {
+            text-decoration: none;
+            color: #007bff;
+        }
+        .back-to-cart a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Payment</h1>
+        <div class="payment-form">
+            <form action="/proceed_to_payment" method="post">
+                <label for="card_number">Card Number:</label>
+                <input type="text" id="card_number" name="card_number" required>
+                <label for="expiration_date">Expiration Date:</label>
+                <input type="text" id="expiration_date" name="expiration_date" required>
+                <label for="cvv">CVV:</label>
+                <input type="text" id="cvv" name="cvv" required>
+                <input type="submit" value="Submit Payment">
+            </form>
+        </div>
+        <div class="back-to-cart">
+            <a href="/cart">Back to Cart</a>
+        </div>
+    </div>
+</body>
+</html>

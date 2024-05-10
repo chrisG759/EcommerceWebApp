@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Write Review</title>
+</head>
+<body>
+    <h1>Write Review for {{ product_title }}</h1>
+    <form action="{{ url_for('write_review', review_id=product_id) }}" method="post">
+    <label for="rating">Rating:</label>
+    <select name="rating" id="rating">
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+    </select><br>
+    <label for="description">Description:</label>
+    <textarea name="description" id="description" cols="30" rows="5"></textarea><br>
+    <label for="image">Image:</label>
+    <input type="text" name="image" id="image"><br>
+    <label for="reviewer_name">Your Name:</label>
+    <input type="text" name="reviewer_name" id="reviewer_name"><br>
+    <button type="submit">Submit Review</button>
+</form>
+
+</body>
+</html>
