@@ -1,29 +1,23 @@
 from datetime import  timedelta, datetime, timezone
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_sqlalchemy import SQLAlchemy
-
+from sqlalchemy.orm import relationship
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret_key'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://chris:sirhc@172.16.181.82/fp180'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://chris:sirhc@172.16.181.31/fp180'
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=15)
 db = SQLAlchemy(app)
 
-from sqlalchemy.orm import relationship
-
 class User(db.Model):
-    __tablename__ = 'users'
+    __tablename__ = 'accounts'
     User_ID = db.Column(db.Integer, primary_key=True, autoincrement=True)
     username = db.Column(db.String(255), nullable=False)
     email = db.Column(db.String(255), nullable=False)
     first_name = db.Column(db.String(255), nullable=False)
     last_name = db.Column(db.String(255), nullable=False)
     password = db.Column(db.String(255), nullable=False)
-
-    carts = relationship('Cart', backref='user')  # Define the relationship
-
-
-
+    type = db.Column(db.String(255), nullable=False)
 
 class Admin(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -51,8 +45,6 @@ class Product(db.Model):
         self.image_url = image_url
         self.Quantity = Quantity
 
-from sqlalchemy.orm import relationship
-
 class Cart(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.User_ID'), nullable=False)
@@ -62,8 +54,6 @@ class Cart(db.Model):
 
     # Define the relationship with Product
     product = relationship('Product', backref='carts')
-
-
 
 @app.route('/')
 def home():
@@ -78,9 +68,16 @@ def login():
         user = User.query.filter_by(username=username).first()
         
         if user and user.password == password:
-            session['user_id'] = user.User_ID  # Corrected attribute name
+            session['user_id'] = user.User_ID
             session.permanent = True
-            return redirect(url_for('products'))
+            if user.type == 'admin':
+                return redirect(url_for('admin'))
+            elif user.type == 'vendor':
+                return redirect(url_for('vendor'))
+            elif user.type == 'customer':
+                return redirect(url_for('products'))
+            else:
+                flash('Invalid account type', 'error')
         else:
             flash('Invalid username or password', 'error')
     
@@ -97,7 +94,6 @@ def cart():
     cart_items = user.carts  # Assuming 'carts' is the relationship name
     
     return render_template('cart.html', cart_items=cart_items)
-
 
 @app.route('/add_to_cart', methods=['POST'])
 def add_to_cart():
@@ -118,25 +114,7 @@ def add_to_cart():
     flash('Product added to cart successfully', 'success')
     return redirect(url_for('cart'))  # Redirect to the cart page
 
-
-
-
-
-@app.route('/admin/login', methods=['GET', 'POST'])
-def admin_login():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        
-        admin = Admin.query.filter_by(username=username, password=password).first()
-        
-        if admin:
-            session['admin_id'] = admin.id
-            return redirect(url_for('admin'))
-        else:
-            flash('Invalid username or password', 'error')
-    
-    return render_template('admin_login.html')
+from flask import flash
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -146,6 +124,13 @@ def register():
         first_name = request.form['first_name']
         last_name = request.form['last_name']
         password = request.form['password']
+        account_type = request.form['account_type']
+        
+        # Check if email is already registered
+        existing_user = User.query.filter_by(email=email).first()
+        if existing_user:
+            flash('Email is already registered.', 'error')
+            return redirect(url_for('register'))  # Redirect back to registration form
         
         new_user = User(
             username=username,
@@ -153,14 +138,14 @@ def register():
             first_name=first_name,
             last_name=last_name,
             password=password,
+            type=account_type
         )
         
         db.session.add(new_user)
         db.session.commit()
         
-        session['user_id'] = new_user.User_ID  # Corrected attribute name
-        
-        return redirect(url_for('products'))
+        session['user_id'] = new_user.User_ID
+        return redirect(url_for('login'))
     
     return render_template('register.html')
 
@@ -198,7 +183,6 @@ def remove_from_cart():
 
     # Redirect back to the cart page
     return redirect(url_for('cart'))
-
 
 if __name__ == '__main__':
     app.run(debug=True)
