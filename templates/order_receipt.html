@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Receipt</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .order-details {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .order-details p {
+            margin: 0;
+        }
+        .order-number {
+            font-weight: bold;
+        }
+        .items {
+            margin-bottom: 10px;
+        }
+        .total-price {
+            font-weight: bold;
+        }
+        .status {
+            font-style: italic;
+        }
+        .back-to-home {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .back-to-home a {
+            text-decoration: none;
+            color: #007bff;
+        }
+        .back-to-home a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Order Receipt</h1>
+        <div class="order-details">
+            <p><span class="order-number">Order Number:</span> {{ order.order_num }}</p>
+            <p class="items">Items: {{ order.items }}</p>
+            <p>Total Price: ${{ order.total_price }}</p>
+            <p>Status: <span class="status">{{ order.status }}</span></p>
+        </div>
+        <div class="back-to-home">
+            <a href="/">Back to Home</a>
+        </div>
+    </div>
+</body>
+</html>

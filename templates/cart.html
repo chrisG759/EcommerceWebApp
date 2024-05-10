@@ -47,17 +47,38 @@
         .actions button:hover {
             background-color: #d32f2f;
         }
-        #back_to_shot {
-            margin: 0 auto;
-            text-align: center;
-        }
-        #back_to_shop, a, button {
+        #back_to_shop button,
+        #proceed_to_payment button {
             display: inline-block;
-            justify-content: center;
-            background-color: lightblue;
+            background-color: #28a745; /* Green color */
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            text-decoration: none; /* Remove underline */
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
         }
-        #back_to_shop, a, button:hover {
-            background-color: #4b86b4; /* Medium blue on hover */
+
+        #back_to_shop button:hover,
+        #proceed_to_payment button:hover {
+            background-color: #218838; /* Darker shade on hover */
+        }
+
+        /* Add these styles to your existing CSS */
+
+        .actions button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        .actions button:hover {
+            background-color: #0056b3; /* Darker shade on hover */
         }
     </style>
 </head>
@@ -87,10 +108,13 @@
                 {% endfor %}
             </tbody>
         </table>
+        <div>Total Amount: ${{ total_price }}</div> <!-- Display total amount -->
     </div>
     <div id="back_to_shop">
         <a href="/products"><button>Back To Shop</button></a>
     </div>
-    
+    <div id="proceed_to_payment">
+        <a href="/proceed_to_payment"><button>Proceed to Payment</button></a>
+    </div>
 </body>
 </html>
