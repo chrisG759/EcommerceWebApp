@@ -16,16 +16,6 @@ class User(db.Model):
     password = db.Column(db.String(255), nullable=False)
     type = db.Column(db.String(255), nullable=False)
 
-class Admin(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(50), unique=True, nullable=False)
-    password = db.Column(db.String(100), nullable=False)
-
-class Vendor(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(50), unique=True, nullable=False)
-    password = db.Column(db.String(100), nullable=False)
-
 class Product(db.Model):
     __tablename__ = 'products'
     Product_ID = db.Column(db.Integer, primary_key=True)
@@ -58,9 +48,6 @@ class Cart(db.Model):
     price = db.Column(db.Numeric(10, 2), nullable=False)  # Add a price column
     date_added = db.Column(db.DateTime, nullable=False, default=datetime.now(timezone.utc))
 
-    product = relationship('Product', backref='carts')
-
-
 class OrderStatus(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     order_num = db.Column(db.Integer, nullable=False)
@@ -78,16 +65,16 @@ def login():
         username = request.form['username']
         password = request.form['password']
         
-        account = Account.query.filter_by(username=username, password=password).first()
+        account = User.query.filter_by(username=username, password=password).first()
         
-        if user and user.password == password:
-            session['user_id'] = user.User_ID
+        if User and User.password == password:
+            session['user_id'] = User.User_ID
             session.permanent = True
-            if user.type == 'admin':
+            if User.type == 'admin':
                 return redirect(url_for('admin'))
-            elif user.type == 'vendor':
+            elif User.type == 'vendor':
                 return redirect(url_for('vendor'))
-            elif user.type == 'customer':
+            elif User.type == 'customer':
                 return redirect(url_for('products'))
             else:
                 flash('Invalid account type', 'error')
@@ -102,7 +89,7 @@ def cart():
         return redirect(url_for('login'))
     
     user_id = session['user_id']
-    user = Account.query.get(user_id)
+    user = User.query.get(user_id)
     cart_items = user.carts  
     
     total_price = 0
@@ -129,7 +116,7 @@ def proceed_to_payment():
 
     if request.method == 'POST':
         user_id = session['user_id']
-        user = Account.query.get(user_id)
+        user = User.query.get(user_id)
         cart_items = user.carts  
 
         items = []
@@ -242,7 +229,7 @@ def register():
             flash('Email is already registered.', 'error')
             return redirect(url_for('register'))  # Redirect back to registration form
         
-        new_user = Account(
+        new_user = User(
             username=username,
             email=email,
             first_name=first_name,  # Adjust field name
@@ -263,7 +250,7 @@ def register():
 def products():
     if 'user_id' not in session:
         return redirect(url_for('login'))
-    user = Account.query.get(session['user_id'])
+    user = User.query.get(session['user_id'])
     products = Product.query.all()
     return render_template('products.html', user=user, products=products)
 
