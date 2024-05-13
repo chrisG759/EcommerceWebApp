@@ -75,8 +75,8 @@
                 <button type="submit" class="add-to-cart-btn">Add to Cart</button>
             </form>
 
-            <!-- Link to leave a review -->
-            <a href="{{ url_for('write_review', product_id=product.Product_ID) }}">Leave a Review for {{ product.title }}</a>
+            <!-- Link to product description page -->
+            <a href="{{ url_for('product_details', product_id=product.Product_ID) }}">Product Description</a>
         </div>
         {% endfor %}
     </div>

@@ -55,24 +55,22 @@
 <body>
     <div class="container">
         <h1>Write Review for {{ product_title }}</h1>
-        <!-- write_review.html -->
-<img src="{{ product_image_url }}" alt="Product Image">
-<form action="{{ url_for('write_review', product_id=product_id) }}" method="post">
-    <label for="rating">Rating:</label>
-    <select name="rating" id="rating">
-        <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
-        <option value="4">4</option>
-        <option value="5">5</option>
-    </select>
-    <label for="description">Description:</label>
-    <textarea name="description" id="description" cols="30" rows="5"></textarea>
-    <label for="reviewer_name">Your Name:</label>
-    <input type="text" name="reviewer_name" id="reviewer_name">
-    <button type="submit">Submit Review</button>
-</form>
 
+        <form action="{{ url_for('write_review', product_id=product_id) }}" method="post">
+            <label for="rating">Rating:</label>
+            <select name="rating" id="rating">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+            </select>
+            <label for="description">Description:</label>
+            <textarea name="description" id="description" cols="30" rows="5"></textarea>
+            <label for="reviewer_name">Your Name:</label>
+            <input type="text" name="reviewer_name" id="reviewer_name">
+            <button type="submit">Submit Review</button>
+        </form>
     </div>
 </body>
 </html>
