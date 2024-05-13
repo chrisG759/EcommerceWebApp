@@ -154,9 +154,6 @@ def proceed_to_payment():
 
     return render_template('payment_form.html')
 
-
-
-
 def generate_order_number():
     # Generate a unique order number (you can implement your own logic)
     # For example, you can use a combination of timestamp and user ID
@@ -197,30 +194,6 @@ def add_to_cart():
         flash('Product not found', 'error')
     
     return redirect(url_for('cart'))  # Redirect to the cart page after adding the item
-
-
-
-
-
-
-@app.route('/admin/login', methods=['GET', 'POST'])
-def admin_login():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        
-        # You need to define Admin model to perform this query
-        # admin = Admin.query.filter_by(username=username, password=password).first()
-        
-        # Assuming you have an Admin model, uncomment the line below
-        # if admin:
-        #     session['admin_id'] = admin.id
-        #     return redirect(url_for('admin'))
-        # else:
-        #     flash('Invalid username or password', 'error')
-        flash('Admin login not implemented yet', 'error')
-    
-    return render_template('admin_login.html')
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
