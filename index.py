@@ -33,19 +33,26 @@ class Product(db.Model):
     size = db.Column(db.String(45))
 
 class Review(db.Model):
-    review_id = db.Column(db.Integer, primary_key=True)
+    review_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     product_id = db.Column(db.Integer, db.ForeignKey('products.Product_ID'), nullable=False)
     rating = db.Column(db.Integer, nullable=False)
     description = db.Column(db.Text, nullable=False)
-    image = db.Column(db.Text)
     reviewer_name = db.Column(db.String(255), nullable=False)
+
+    def __init__(self, product_id, rating, description, reviewer_name):
+        self.product_id = product_id
+        self.rating = rating
+        self.description = description
+        self.reviewer_name = reviewer_name
+
+
 
 class Cart(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('accounts.User_ID'), nullable=False)
     product_id = db.Column(db.Integer, db.ForeignKey('products.Product_ID'), nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
-    price = db.Column(db.Numeric(10, 2), nullable=False)  # Add a price column
+    price = db.Column(db.Numeric(10, 2), nullable=False)
     date_added = db.Column(db.DateTime, nullable=False, default=datetime.now(timezone.utc))
 
     product = db.relationship('Product', backref='cart_items', lazy=True)
@@ -69,7 +76,7 @@ def login():
         
         account = User.query.filter_by(username=username, password=password).first()
         
-        if account:  # Check if account exists
+        if account:
             session['user_id'] = account.User_ID
             session.permanent = True
             if account.type == 'admin':
@@ -82,11 +89,9 @@ def login():
                 flash('Invalid account type', 'error')
         else:
             flash('Invalid username or password', 'error')
-            return redirect(url_for('login'))  # Redirect back to the login page
+            return redirect(url_for('login'))
     
-    # Render the login form template
     return render_template('login.html')
-
 
 @app.route('/cart')
 def cart():
@@ -95,20 +100,17 @@ def cart():
     
     user_id = session['user_id']
     user = User.query.get(user_id)
-    cart_items = Cart.query.filter_by(user_id=user_id).all()  # Retrieve all cart items for the user
+    cart_items = Cart.query.filter_by(user_id=user_id).all()
     
     total_price = 0
     
     for item in cart_items:
-        product = Product.query.get(item.product_id)  # Retrieve the product associated with the cart item
+        product = Product.query.get(item.product_id)
         if product is None:
             flash(f'Product not found for cart item with ID: {item.id}', 'error')
             return redirect(url_for('home'))
         
-        # Add the product information to the cart item
         item.product = product
-        
-        # Calculate the total price for each item in the cart
         item.total_price = item.quantity * product.price
         total_price += item.total_price
     
@@ -136,12 +138,10 @@ def proceed_to_payment():
             total_price += product.price * item.quantity
             items.append(f"{product.Title} (Quantity: {item.quantity})")
 
-        # Create order status object
         order = OrderStatus(order_num=generate_order_number(), items=', '.join(items), total_price=f"${total_price:.2f}", status='Pending')
         db.session.add(order)
         db.session.commit()
 
-        # Clear the cart after order placement
         Cart.query.filter_by(user_id=user_id).delete()
         db.session.commit()
 
@@ -151,8 +151,6 @@ def proceed_to_payment():
     return render_template('payment_form.html')
 
 def generate_order_number():
-    # Generate a unique order number (you can implement your own logic)
-    # For example, you can use a combination of timestamp and user ID
     return int(datetime.now().timestamp())
 
 @app.route('/order_receipt/<int:order_num>')
@@ -176,7 +174,6 @@ def add_to_cart():
 
     product = Product.query.get(product_id)
     if product:
-        # Check if the product price is None or not properly set
         if product.price is None:
             flash(f'Price for product "{product.Title}" is not set. Please contact support.', 'error')
             return redirect(url_for('home'))
@@ -189,29 +186,24 @@ def add_to_cart():
     else:
         flash('Product not found', 'error')
     
-    return redirect(url_for('cart'))  # Redirect to the cart page after adding the item
+    return redirect(url_for('cart'))
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
         username = request.form['username']
         email = request.form['email']
-        first_name = request.form['first_name']
-        last_name = request.form['last_name']
         password = request.form['password']
         account_type = request.form['account_type']
         
-        # Check if email is already registered
         existing_user = User.query.filter_by(email=email).first()
         if existing_user:
             flash('Email is already registered.', 'error')
-            return redirect(url_for('register'))  # Redirect back to registration form
+            return redirect(url_for('register'))
         
         new_user = User(
             username=username,
             email=email,
-            first_name=first_name,  # Adjust field name
-            last_name=last_name,    # Adjust field name
             password=password,
             type=account_type
         )
@@ -238,21 +230,31 @@ def product_details(product_id):
     reviews = Review.query.filter_by(product_id=product_id).all()
     return render_template('product_details.html', product=product, reviews=reviews)
 
-@app.route('/product/<int:product_id>/write_review', methods=['GET', 'POST'])
+
+@app.route('/write_review/<int:product_id>', methods=['GET', 'POST'])
 def write_review(product_id):
-    product_image_url = request.args.get('product_image_url')
     if request.method == 'POST':
+        # Retrieve review data from the form
         rating = request.form['rating']
         description = request.form['description']
         reviewer_name = request.form['reviewer_name']
         
-        # Now you have all the necessary data to save the review to the database
-        # You can use the product_image_url, rating, description, reviewer_name, and product_id to save the review
+        # Create a new review object and associate it with the product
+        review = Review(product_id=product_id, rating=rating, description=description, reviewer_name=reviewer_name)
         
-        flash('Review added successfully', 'success')
+        # Add the review to the database session and commit changes
+        db.session.add(review)
+        db.session.commit()
+        
+        # Redirect to the product details page after the review is submitted
         return redirect(url_for('product_details', product_id=product_id))
     
     return render_template('write_review.html', product_id=product_id, product_image_url=product_image_url)
+
+
+
+
+
 
 
 @app.route('/product/<int:product_id>/reviews')

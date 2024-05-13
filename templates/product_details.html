@@ -4,24 +4,86 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ product.Title }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f7f7f7;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            margin-bottom: 20px;
+            color: #007bff;
+        }
+        .product-details {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #ccc;
+        }
+        .product-details p {
+            margin-bottom: 10px;
+        }
+        .product-details img {
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+        .review {
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+        .review p {
+            margin-bottom: 5px;
+        }
+        .review .rating {
+            font-weight: bold;
+            color: #007bff;
+        }
+        .review .description {
+            font-style: italic;
+        }
+        .write-review-link {
+            display: block;
+            margin-top: 20px;
+            color: #007bff;
+            text-decoration: none;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
-    <h1>{{ product.Title }}</h1>
-    <p>Description: {{ product.Description }}</p>
-    <p>Price: ${{ product.Price }}</p>
-    <p>Quantity: {{ product.Quantity }}</p>
-    
-    <h2>Reviews</h2>
-    {% for review in reviews %}
-    <div>
-        <p>Rating: {{ review.rating }}/5</p>
-        <p>Description: {{ review.description }}</p>
-        <p>Reviewer: {{ review.reviewer_name }}</p>
+    <div class="container">
+        <h2>{{ product.Title }}</h2>
+        <div class="product-details">
+            <p>Description: {{ product.Description }}</p>
+            <p>Price: ${{ product.price }}</p>
+            <p>Quantity: {{ product.Quantity }}</p>
+            <img src="{{ product.image_url }}" alt="Product Image">
+        </div>
+        
+        <h2>Reviews</h2>
+        {% for review in reviews %}
+            <div class="review">
+                <p class="rating">Rating: {{ review.rating }}/5</p>
+                <p class="description">Description: {{ review.description }}</p>
+                <p class="reviewer">Reviewer: {{ review.reviewer_name }}</p>
+            </div>
+        {% endfor %}
+
+        <a class="write-review-link" href="{{ url_for('write_review', product_id=product.Product_ID) }}">Write a Review</a>
     </div>
-    {% endfor %}
-
-    <!-- product_details.html -->
-<a href="{{ url_for('write_review', product_id=product.id, product_image_url=product.image_url) }}">Write a Review</a>
-
 </body>
 </html>
