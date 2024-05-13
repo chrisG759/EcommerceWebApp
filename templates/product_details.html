@@ -20,6 +20,8 @@
     </div>
     {% endfor %}
 
-    <a href="{{ url_for('write_review', product_id=product.Product_ID) }}">Write Review</a>
+    <!-- product_details.html -->
+<a href="{{ url_for('write_review', product_id=product.id, product_image_url=product.image_url) }}">Write a Review</a>
+
 </body>
 </html>
