@@ -4,7 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret_key'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://chris:sirhc@172.16.181.31/fp180'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://chris:sirhc@172.16.180.214/fp180'
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=15)
 db = SQLAlchemy(app)
 
@@ -103,8 +103,6 @@ def cart():
         # Calculate the total price for each item in the cart
         item.total_price = item.quantity * item.product.price
         total_price += item.total_price
-
-
     
     return render_template('cart.html', cart_items=cart_items, total_price=total_price)
 
@@ -144,9 +142,6 @@ def proceed_to_payment():
         return redirect(url_for('order_receipt', order_num=order.order_num))
 
     return render_template('payment_form.html')
-
-
-
 
 def generate_order_number():
     # Generate a unique order number (you can implement your own logic)
@@ -188,30 +183,6 @@ def add_to_cart():
         flash('Product not found', 'error')
     
     return redirect(url_for('cart'))  # Redirect to the cart page after adding the item
-
-
-
-
-
-
-@app.route('/admin/login', methods=['GET', 'POST'])
-def admin_login():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        
-        # You need to define Admin model to perform this query
-        # admin = Admin.query.filter_by(username=username, password=password).first()
-        
-        # Assuming you have an Admin model, uncomment the line below
-        # if admin:
-        #     session['admin_id'] = admin.id
-        #     return redirect(url_for('admin'))
-        # else:
-        #     flash('Invalid username or password', 'error')
-        flash('Admin login not implemented yet', 'error')
-    
-    return render_template('admin_login.html')
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
