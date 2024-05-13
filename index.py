@@ -17,8 +17,6 @@ class User(db.Model):
     type = db.Column(db.String(255), nullable=False)
     carts = db.relationship('Cart', backref='user', lazy=True)
 
-
-
 class Product(db.Model):
     __tablename__ = 'products'
     Product_ID = db.Column(db.Integer, primary_key=True)
@@ -28,7 +26,7 @@ class Product(db.Model):
     image_url = db.Column(db.Text, nullable=False)
     Quantity = db.Column(db.Integer, nullable=False)
     warranty = db.Column(db.String(45))
-    discount = db.Column(db.String)
+    discount = db.Column(db.String(45))
     vendor_id = db.Column(db.Integer, nullable=False)
 
 class Review(db.Model):
@@ -295,6 +293,22 @@ def vendor():
     products = Product.query.filter_by(vendor_id=user.User_ID).all()
 
     return render_template('vendor.html', user=user, products=products)
+
+@app.route('/update_price', methods=['POST'])
+def update_price():
+    if 'user_id' not in session or User.query.get(session['user_id']).type != 'vendor':
+        return redirect(url_for('login'))
+
+    for key, value in request.form.items():
+        if key.startswith('price_'):
+            product_id = int(key.split('_')[1])
+            product = Product.query.get(product_id)
+            if product:
+                product.price = float(value)
+                db.session.commit()
+
+    flash('Prices updated successfully', 'success')
+    return redirect(url_for('vendor'))
 
 if __name__ == '__main__':
     app.run(debug=True)
