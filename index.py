@@ -67,21 +67,24 @@ def login():
         
         account = User.query.filter_by(username=username, password=password).first()
         
-        if User and User.password == password:
-            session['user_id'] = User.User_ID
+        if account:  # Check if account exists
+            session['user_id'] = account.User_ID
             session.permanent = True
-            if User.type == 'admin':
+            if account.type == 'admin':
                 return redirect(url_for('admin'))
-            elif User.type == 'vendor':
+            elif account.type == 'vendor':
                 return redirect(url_for('vendor'))
-            elif User.type == 'customer':
+            elif account.type == 'customer':
                 return redirect(url_for('products'))
             else:
                 flash('Invalid account type', 'error')
         else:
             flash('Invalid username or password', 'error')
+            return redirect(url_for('login'))  # Redirect back to the login page
     
+    # Render the login form template
     return render_template('login.html')
+
 
 @app.route('/cart')
 def cart():
