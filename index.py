@@ -24,13 +24,9 @@ class Product(db.Model):
     price = db.Column(db.Numeric(10, 2), nullable=False)
     image_url = db.Column(db.Text, nullable=False)
     Quantity = db.Column(db.Integer, nullable=False)
-
-    def __init__(self, Title, Description, price, image_url, Quantity):
-        self.Title = Title
-        self.Description = Description
-        self.price = price
-        self.image_url = image_url
-        self.Quantity = Quantity
+    warranty = db.Column(db.String(45))
+    discount = db.Column(db.String)
+    vendor_id = db.Column(db.Integer, nullable=False)
 
 class Review(db.Model):
     review_id = db.Column(db.Integer, primary_key=True)
@@ -105,7 +101,6 @@ def cart():
         total_price += item.total_price
     
     return render_template('cart.html', cart_items=cart_items, total_price=total_price)
-
 
 @app.route('/proceed_to_payment', methods=['GET', 'POST'])
 def proceed_to_payment():
@@ -245,11 +240,6 @@ def write_review(product_id):
         return redirect(url_for('product_details', product_id=product_id))
     return render_template('write_review.html', product_id=product_id)
 
-
-
-
-
-
 @app.route('/product/<int:product_id>/reviews')
 def product_reviews(product_id):
     product = Product.query.get_or_404(product_id)
@@ -278,6 +268,19 @@ def remove_from_cart():
         flash('Failed to remove product from cart', 'error')
 
     return redirect(url_for('cart'))
+
+@app.route('/vendor')
+def vendor():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    # Get the logged-in user
+    user = User.query.get(session['user_id'])
+
+    # Query products associated with the vendor
+    products = Product.query.filter_by(vendor_id=user.User_ID).all()
+
+    return render_template('vendor.html', user=user, products=products)
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -1,5 +1,11 @@
 {% extends "base.html" %}
 {% block heading %}Vendor{% endblock %}
 {% block content %}
-
+    <h2>Welcome, {{ user.username }}</h2>
+    <h3>Your Products:</h3>
+    <ul>
+        {% for product in products %}
+        <li>{{ product.Title }} - {{ product.Description }} - Price: ${{ product.price }}</li>
+        {% endfor %}
+    </ul>
 {% endblock %}
