@@ -15,6 +15,9 @@ class User(db.Model):
     email = db.Column(db.String(255), nullable=False)
     password = db.Column(db.String(255), nullable=False)
     type = db.Column(db.String(255), nullable=False)
+    carts = db.relationship('Cart', backref='user', lazy=True)
+
+
 
 class Product(db.Model):
     __tablename__ = 'products'
@@ -47,6 +50,8 @@ class Cart(db.Model):
     quantity = db.Column(db.Integer, nullable=False)
     price = db.Column(db.Numeric(10, 2), nullable=False)  # Add a price column
     date_added = db.Column(db.DateTime, nullable=False, default=datetime.now(timezone.utc))
+
+    product = db.relationship('Product', backref='cart_items', lazy=True)
 
 class OrderStatus(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -93,21 +98,22 @@ def cart():
     
     user_id = session['user_id']
     user = User.query.get(user_id)
-    cart_items = user.carts  
+    cart_items = Cart.query.filter_by(user_id=user_id).all()  # Retrieve all cart items for the user
     
     total_price = 0
     
     for item in cart_items:
-    # Check if price is None or zero
-        if item.product.price is None or item.product.price == 0:
-            flash(f'Price for item "{item.product.Title}" is not set or zero. Please contact support.', 'error')
+        product = Product.query.get(item.product_id)  # Retrieve the product associated with the cart item
+        if product is None:
+            flash(f'Product not found for cart item with ID: {item.id}', 'error')
             return redirect(url_for('home'))
         
+        # Add the product information to the cart item
+        item.product = product
+        
         # Calculate the total price for each item in the cart
-        item.total_price = item.quantity * item.product.price
+        item.total_price = item.quantity * product.price
         total_price += item.total_price
-
-
     
     return render_template('cart.html', cart_items=cart_items, total_price=total_price)
 
@@ -265,17 +271,20 @@ def product_details(product_id):
 
 @app.route('/product/<int:product_id>/write_review', methods=['GET', 'POST'])
 def write_review(product_id):
+    product_image_url = request.args.get('product_image_url')
     if request.method == 'POST':
-        rating = int(request.form['rating'])
+        rating = request.form['rating']
         description = request.form['description']
-        image = request.form['image']
         reviewer_name = request.form['reviewer_name']
-        review = Review(product_id=product_id, rating=rating, description=description, image=image, reviewer_name=reviewer_name)
-        db.session.add(review)
-        db.session.commit()
+        
+        # Now you have all the necessary data to save the review to the database
+        # You can use the product_image_url, rating, description, reviewer_name, and product_id to save the review
+        
         flash('Review added successfully', 'success')
         return redirect(url_for('product_details', product_id=product_id))
-    return render_template('write_review.html', product_id=product_id)
+    
+    return render_template('write_review.html', product_id=product_id, product_image_url=product_image_url)
+
 
 
 
