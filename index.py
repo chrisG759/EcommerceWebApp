@@ -11,6 +11,7 @@ db = SQLAlchemy(app)
 class User(db.Model):
     __tablename__ = 'accounts'
     User_ID = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    first_name = db.Column(db.String(45), unique=True, nullable=False)
     username = db.Column(db.String(45), unique=True, nullable=False)
     email = db.Column(db.String(255), nullable=False)
     password = db.Column(db.String(255), nullable=False)
@@ -19,7 +20,7 @@ class User(db.Model):
 
 class Product(db.Model):
     __tablename__ = 'products'
-    Product_ID = db.Column(db.Integer, primary_key=True)
+    Product_ID = db.Column(db.Integer, primary_key=True, autoincrement=True)
     Title = db.Column(db.Text, nullable=False)
     Description = db.Column(db.Text, nullable=False)
     price = db.Column(db.Numeric(10, 2), nullable=False)
@@ -28,6 +29,8 @@ class Product(db.Model):
     warranty = db.Column(db.String(45))
     discount = db.Column(db.String(45))
     vendor_id = db.Column(db.Integer, nullable=False)
+    color = db.Column(db.String(45))
+    size = db.Column(db.String(45))
 
 class Review(db.Model):
     review_id = db.Column(db.Integer, primary_key=True)
@@ -308,6 +311,42 @@ def update_price():
                 db.session.commit()
 
     flash('Prices updated successfully', 'success')
+    return redirect(url_for('vendor'))
+
+@app.route('/add_product', methods=['POST'])
+def add_product():
+    if 'user_id' not in session or User.query.get(session['user_id']).type != 'vendor':
+        return redirect(url_for('login'))
+
+    title = request.form['title']
+    description = request.form['description']
+    price = request.form['price']
+    image_url = request.form['image_url']
+    quantity = request.form['quantity']
+    warranty = request.form['warranty']
+    discount = request.form['discount']
+    size = request.form['size']
+    color = request.form['color']
+
+    vendor_id = session['user_id']  # Assuming vendor_id is linked to the vendor logged in
+
+    new_product = Product(
+        Title=title,
+        Description=description,
+        price=price,
+        image_url=image_url,
+        Quantity=quantity,
+        warranty=warranty,
+        discount=discount,
+        vendor_id=vendor_id,
+        size=size,
+        color=color
+    )
+
+    db.session.add(new_product)
+    db.session.commit()
+
+    flash('Product added successfully', 'success')
     return redirect(url_for('vendor'))
 
 if __name__ == '__main__':
