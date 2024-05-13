@@ -1,5 +1,35 @@
 {% extends "base.html" %}
 {% block heading %}Vendor{% endblock %}
 {% block content %}
-
+    <h2>Welcome, {{ user.username }}</h2>
+    <h3>Your Products:</h3>
+    <form action="/update_price" method="POST">
+        <table class="product-table">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Description</th>
+                    <th>Price</th>
+                    <th>Image URL</th>
+                    <th>Quantity</th>
+                    <th>Warranty</th>
+                    <th>Discount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                <tr>
+                    <td>{{ product.Title }}</td>
+                    <td>{{ product.Description }}</td>
+                    <td><input type="number" name="price_{{ product.Product_ID }}" value="{{ product.price }}"></td>
+                    <td>{{ product.image_url }}</td>
+                    <td>{{ product.Quantity }}</td>
+                    <td>{{ product.warranty }}</td>
+                    <td>{{ product.discount }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <button type="submit">Update Prices</button>
+    </form>
 {% endblock %}

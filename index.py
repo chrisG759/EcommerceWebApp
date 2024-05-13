@@ -25,13 +25,9 @@ class Product(db.Model):
     price = db.Column(db.Numeric(10, 2), nullable=False)
     image_url = db.Column(db.Text, nullable=False)
     Quantity = db.Column(db.Integer, nullable=False)
-
-    def __init__(self, Title, Description, price, image_url, Quantity):
-        self.Title = Title
-        self.Description = Description
-        self.price = price
-        self.image_url = image_url
-        self.Quantity = Quantity
+    warranty = db.Column(db.String(45))
+    discount = db.Column(db.String(45))
+    vendor_id = db.Column(db.Integer, nullable=False)
 
 class Review(db.Model):
     review_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -250,9 +246,11 @@ def write_review(product_id):
         # Redirect to the product details page after the review is submitted
         return redirect(url_for('product_details', product_id=product_id))
     
-    # Render the write review template
-    product = Product.query.get_or_404(product_id)
-    return render_template('write_review.html', product_id=product_id)
+    return render_template('write_review.html', product_id=product_id, product_image_url=product_image_url)
+
+
+
+
 
 
 
@@ -284,6 +282,35 @@ def remove_from_cart():
         flash('Failed to remove product from cart', 'error')
 
     return redirect(url_for('cart'))
+
+@app.route('/vendor')
+def vendor():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    # Get the logged-in user
+    user = User.query.get(session['user_id'])
+
+    # Query products associated with the vendor
+    products = Product.query.filter_by(vendor_id=user.User_ID).all()
+
+    return render_template('vendor.html', user=user, products=products)
+
+@app.route('/update_price', methods=['POST'])
+def update_price():
+    if 'user_id' not in session or User.query.get(session['user_id']).type != 'vendor':
+        return redirect(url_for('login'))
+
+    for key, value in request.form.items():
+        if key.startswith('price_'):
+            product_id = int(key.split('_')[1])
+            product = Product.query.get(product_id)
+            if product:
+                product.price = float(value)
+                db.session.commit()
+
+    flash('Prices updated successfully', 'success')
+    return redirect(url_for('vendor'))
 
 if __name__ == '__main__':
     app.run(debug=True)
