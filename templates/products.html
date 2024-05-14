@@ -1,3 +1,4 @@
+{% include 'base.html' %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,7 +11,7 @@
             padding: 10px;
             margin: 10px;
             width: 200px;
-            height: 300px; /* Set a fixed height for each product tile */
+            height: 400px; /* Set a fixed height for each product tile */
             display: inline-block;
             vertical-align: top;
             position: relative; /* Add position relative to contain absolute positioned button */
@@ -27,6 +28,7 @@
         }
         .product-description {
             margin-bottom: 10px;
+            margin-top: 20px;
         }
         .product-price {
             font-weight: bold;
@@ -44,14 +46,21 @@
             left: 50%; /* Center button horizontally */
             transform: translateX(-50%); /* Center button horizontally */
         }
-        #back_to_shop, a, button {
-            display: inline-block;
-            justify-content: center;
-            background-color: lightblue;
+        #back_to_shop {
+            text-align: center;
+            margin-top: 20px; /* Adjust the margin as needed */
         }
-        #back_to_shop, a, button:hover {
+
+        #back_to_shop button {
+            background-color: lightblue;
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+
+        #back_to_shop button:hover {
             background-color: #4b86b4; /* Medium blue on hover */
         }
+
     </style>
 </head>
 <body>
@@ -64,6 +73,7 @@
             <div class="product-title">{{ product.Title }}</div>
             <div class="product-description">{{ product.Description }}</div>
             <div class="product-price">${{ product.price }}</div>
+            <td>Discount: {% if product.discount %}<span class="discount-tag">{{ product.discount }}</span>{% endif %}</td>
             <form action="{{ url_for('add_to_cart') }}" method="post">
                 <input type="hidden" name="product_id" value="{{ product.Product_ID }}">
                 <label for="quantity">Quantity:</label>
