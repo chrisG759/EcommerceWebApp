@@ -63,7 +63,7 @@
             <img class="product-image" src="{{ product.image_url }}" alt="{{ product.Title }}" width="150">
             <div class="product-title">{{ product.Title }}</div>
             <div class="product-description">{{ product.Description }}</div>
-            <div class="product-price">${{ product.Price }}</div>
+            <div class="product-price">${{ product.price }}</div>
             <form action="{{ url_for('add_to_cart') }}" method="post">
                 <input type="hidden" name="product_id" value="{{ product.Product_ID }}">
                 <label for="quantity">Quantity:</label>
