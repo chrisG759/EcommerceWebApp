@@ -250,7 +250,7 @@ def write_review(product_id):
         # Redirect to the product details page after the review is submitted
         return redirect(url_for('product_details', product_id=product_id))
     
-    return render_template('write_review.html', product_id=product_id, product_image_url=image_url)
+    return render_template('write_review.html', product_id=product_id)
 
 @app.route('/product/<int:product_id>/reviews')
 def product_reviews(product_id):
@@ -364,6 +364,25 @@ def delete_product():
         flash('Product deleted successfully', 'success')
 
     return redirect(url_for('vendor'))
+
+@app.route('/admin')
+def admin():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    # Get the logged-in user
+    user = User.query.get(session['user_id'])
+
+    # Check if the user is an admin
+    if user.type != 'admin':
+        flash('Access denied. You do not have permission to access this page.', 'error')
+        return redirect(url_for('login'))
+
+    # Query all products
+    products = Product.query.all()
+
+    return render_template('admin.html', user=user, products=products)
+
 
 if __name__ == '__main__':
     app.run(debug=True)
