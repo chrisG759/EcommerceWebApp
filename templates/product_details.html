@@ -19,6 +19,8 @@
             background-color: #fff;
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            position: relative; /* Add position relative for absolute positioning */
+            min-height: 100vh; /* Set minimum height to full viewport height */
         }
         h2 {
             margin-bottom: 20px;
@@ -62,6 +64,26 @@
             text-decoration: none;
             font-weight: bold;
         }
+        .back-to-shop {
+            position: absolute; /* Position the button */
+            bottom: 20px; /* Adjust bottom position */
+            left: calc(50% - 80px); /* Center horizontally */
+            background-color: #007bff; /* Blue color */
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            text-decoration: none; /* Remove underline */
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .back-to-shop:hover {
+            background-color: #0056b3; /* Darker shade on hover */
+        }
+        .discount-info {
+            font-style: italic;
+            color: #007bff;
+        }
     </style>
 </head>
 <body>
@@ -70,6 +92,9 @@
         <div class="product-details">
             <p>Description: {{ product.Description }}</p>
             <p>Price: ${{ product.price }}</p>
+            {% if product.discount %}
+                <p class="discount-info">{{ product.discount }}</p>
+            {% endif %}
             <p>Quantity: {{ product.Quantity }}</p>
             <img src="{{ product.image_url }}" alt="Product Image">
         </div>
@@ -84,6 +109,7 @@
         {% endfor %}
 
         <a class="write-review-link" href="{{ url_for('write_review', product_id=product.Product_ID) }}">Write a Review</a>
+        <a href="/products" class="back-to-shop">Back to Shop</a>
     </div>
 </body>
 </html>

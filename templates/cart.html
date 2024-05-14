@@ -31,26 +31,17 @@
         }
         th {
             background-color: #f2f2f2;
+            padding: 10px; /* Add padding to table headings */
         }
         .actions {
             text-align: center;
+            margin-top: 1cm;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
         .actions button {
-            background-color: #f44336;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            cursor: pointer;
-            border-radius: 4px;
-            transition: background-color 0.3s;
-        }
-        .actions button:hover {
-            background-color: #d32f2f;
-        }
-        #back_to_shop button,
-        #proceed_to_payment button {
-            display: inline-block;
-            background-color: #28a745; /* Green color */
+            background-color: #007bff; /* Blue color */
             color: white;
             border: none;
             padding: 10px 20px;
@@ -58,25 +49,8 @@
             border-radius: 4px;
             cursor: pointer;
             transition: background-color 0.3s;
+            margin-bottom: 1cm; /* 1cm spacing */
         }
-
-        #back_to_shop button:hover,
-        #proceed_to_payment button:hover {
-            background-color: #218838; /* Darker shade on hover */
-        }
-
-        /* Add these styles to your existing CSS */
-
-        .actions button {
-            background-color: #007bff;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            cursor: pointer;
-            border-radius: 4px;
-            transition: background-color 0.3s;
-        }
-
         .actions button:hover {
             background-color: #0056b3; /* Darker shade on hover */
         }
@@ -90,7 +64,7 @@
                 <tr>
                     <th>Product</th>
                     <th>Quantity</th>
-                    <th class="actions">Actions</th>
+                    <th>Actions</th> <!-- Removed class attribute -->
                 </tr>
             </thead>
             <tbody>
@@ -110,10 +84,8 @@
         </table>
         <div>Total Amount: ${{ total_price }}</div> <!-- Display total amount -->
     </div>
-    <div id="back_to_shop">
+    <div class="actions">
         <a href="/products"><button>Back To Shop</button></a>
-    </div>
-    <div id="proceed_to_payment">
         <a href="/proceed_to_payment"><button>Proceed to Payment</button></a>
     </div>
 </body>
