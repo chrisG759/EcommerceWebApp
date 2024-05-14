@@ -34,6 +34,18 @@
         </table>
         <button type="submit">Update Prices</button>
     </form>
+    <h3>Delete Product</h3>
+    <ul>
+        {% for product in products %}
+        <li>
+            <strong>{{ product.Title }}</strong> - ${{ product.price }}
+            <form action="/delete_product" method="POST" style="display: inline;">
+                <input type="hidden" name="product_id" value="{{ product.Product_ID }}">
+                <button type="submit">Delete</button>
+            </form>
+        </li>
+        {% endfor %}
+    </ul>
     <h3>Add New Product:</h3>
     <form action="/add_product" method="POST">
         <label for="title">Title:</label><br>

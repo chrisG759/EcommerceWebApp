@@ -5,6 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret_key'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://chris:sirhc@172.16.181.16/fp180'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://chris:sirhc@172.16.181.16/fp180'
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=15)
 db = SQLAlchemy(app)
 
@@ -249,13 +250,7 @@ def write_review(product_id):
         # Redirect to the product details page after the review is submitted
         return redirect(url_for('product_details', product_id=product_id))
     
-    return render_template('write_review.html', product_id=product_id)
-
-
-
-
-
-
+    return render_template('write_review.html', product_id=product_id, product_image_url=image_url)
 
 @app.route('/product/<int:product_id>/reviews')
 def product_reviews(product_id):
@@ -330,7 +325,7 @@ def add_product():
     size = request.form['size']
     color = request.form['color']
 
-    vendor_id = session['user_id']  # Assuming vendor_id is linked to the vendor logged in
+    vendor_id = session['user_id']
 
     new_product = Product(
         Title=title,
@@ -349,6 +344,25 @@ def add_product():
     db.session.commit()
 
     flash('Product added successfully', 'success')
+    return redirect(url_for('vendor'))
+
+@app.route('/delete_product', methods=['POST'])
+def delete_product():
+    if 'user_id' not in session or User.query.get(session['user_id']).type != 'vendor':
+        return redirect(url_for('login'))
+
+    product_id = request.form['product_id']
+    product = Product.query.get(product_id)
+
+    if not product:
+        flash('Product not found', 'error')
+    elif product.vendor_id != session['user_id']:
+        flash('You do not have permission to delete this product', 'error')
+    else:
+        db.session.delete(product)
+        db.session.commit()
+        flash('Product deleted successfully', 'success')
+
     return redirect(url_for('vendor'))
 
 if __name__ == '__main__':
