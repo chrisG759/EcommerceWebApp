@@ -4,7 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret_key'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://chris:sirhc@172.16.180.214/fp180'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://chris:sirhc@172.16.181.16/fp180'
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=15)
 db = SQLAlchemy(app)
 
@@ -249,7 +249,7 @@ def write_review(product_id):
         # Redirect to the product details page after the review is submitted
         return redirect(url_for('product_details', product_id=product_id))
     
-    return render_template('write_review.html', product_id=product_id, product_image_url=product_image_url)
+    return render_template('write_review.html', product_id=product_id)
 
 
 
