@@ -1,8 +1,8 @@
 {% extends "base.html" %}
-{% block heading %}Vendor{% endblock %}
+{% block heading %}Admin{% endblock %}
 {% block content %}
     <h2>Welcome, {{ user.first_name }}</h2>
-    <h3>Your Products:</h3>
+    <h3>All Products:</h3>
     <form action="/update_price" method="POST">
         <table class="product-table">
             <thead>
@@ -68,6 +68,8 @@
         <input type="text" id="warranty" name="warranty"><br>
         <label for="discount">Discount:</label><br>
         <input type="text" id="discount" name="discount"><br>
+        <label for="vendor_id">Vendor ID:</label><br>
+        <input type="number" id="vendor_id" name="vendor_id" required><br>
         <button type="submit">Add Product</button>
     </form>
 {% endblock %}

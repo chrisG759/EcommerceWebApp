@@ -4,7 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret_key'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://chris:sirhc@172.16.180.90/fp180'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://chris:sirhc@172.16.181.16/fp180'
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=15)
 db = SQLAlchemy(app)
 
@@ -44,8 +44,6 @@ class Review(db.Model):
         self.rating = rating
         self.description = description
         self.reviewer_name = reviewer_name
-
-
 
 class Cart(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -234,19 +232,15 @@ def product_details(product_id):
 @app.route('/write_review/<int:product_id>', methods=['GET', 'POST'])
 def write_review(product_id):
     if request.method == 'POST':
-        # Retrieve review data from the form
         rating = request.form['rating']
         description = request.form['description']
         reviewer_name = request.form['reviewer_name']
         
-        # Create a new review object and associate it with the product
         review = Review(product_id=product_id, rating=rating, description=description, reviewer_name=reviewer_name)
         
-        # Add the review to the database session and commit changes
         db.session.add(review)
         db.session.commit()
         
-        # Redirect to the product details page after the review is submitted
         return redirect(url_for('product_details', product_id=product_id))
     
     return render_template('write_review.html', product_id=product_id)
@@ -285,17 +279,15 @@ def vendor():
     if 'user_id' not in session:
         return redirect(url_for('login'))
 
-    # Get the logged-in user
     user = User.query.get(session['user_id'])
 
-    # Query products associated with the vendor
     products = Product.query.filter_by(vendor_id=user.User_ID).all()
 
     return render_template('vendor.html', user=user, products=products)
 
 @app.route('/update_price', methods=['POST'])
 def update_price():
-    if 'user_id' not in session or User.query.get(session['user_id']).type != 'vendor':
+    if 'user_id' not in session or User.query.get(session['user_id']).type not in ['vendor', 'admin']:
         return redirect(url_for('login'))
 
     for key, value in request.form.items():
@@ -307,11 +299,21 @@ def update_price():
                 db.session.commit()
 
     flash('Prices updated successfully', 'success')
-    return redirect(url_for('vendor'))
+
+    # Redirect based on user type
+    if User.query.get(session['user_id']).type == 'vendor':
+        return redirect(url_for('vendor'))
+    else:
+        return redirect(url_for('admin'))
 
 @app.route('/add_product', methods=['POST'])
 def add_product():
-    if 'user_id' not in session or User.query.get(session['user_id']).type != 'vendor':
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    user = User.query.get(session['user_id'])
+
+    if user.type not in ['vendor', 'admin']:
         return redirect(url_for('login'))
 
     title = request.form['title']
@@ -324,7 +326,10 @@ def add_product():
     size = request.form['size']
     color = request.form['color']
 
-    vendor_id = session['user_id']
+    if user.type == 'vendor':
+        vendor_id = user.User_ID
+    else:
+        vendor_id = request.form['vendor_id']
 
     new_product = Product(
         Title=title,
@@ -343,11 +348,15 @@ def add_product():
     db.session.commit()
 
     flash('Product added successfully', 'success')
-    return redirect(url_for('vendor'))
+
+    if user.type == 'vendor':
+        return redirect(url_for('vendor'))
+    else:
+        return redirect(url_for('admin'))
 
 @app.route('/delete_product', methods=['POST'])
 def delete_product():
-    if 'user_id' not in session or User.query.get(session['user_id']).type != 'vendor':
+    if 'user_id' not in session or User.query.get(session['user_id']).type not in ['vendor', 'admin']:
         return redirect(url_for('login'))
 
     product_id = request.form['product_id']
@@ -355,14 +364,17 @@ def delete_product():
 
     if not product:
         flash('Product not found', 'error')
-    elif product.vendor_id != session['user_id']:
+    elif product.vendor_id != session['user_id'] and User.query.get(session['user_id']).type != 'admin':
         flash('You do not have permission to delete this product', 'error')
     else:
         db.session.delete(product)
         db.session.commit()
         flash('Product deleted successfully', 'success')
 
-    return redirect(url_for('vendor'))
+    if User.query.get(session['user_id']).type == 'vendor':
+        return redirect(url_for('vendor'))
+    else:
+        return redirect(url_for('admin'))
 
 @app.route('/admin')
 def admin():
@@ -381,7 +393,6 @@ def admin():
     products = Product.query.all()
 
     return render_template('admin.html', user=user, products=products)
-
 
 if __name__ == '__main__':
     app.run(debug=True)
