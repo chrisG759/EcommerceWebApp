@@ -22,7 +22,7 @@
                 <tr>
                     <td>{{ product.Title }}</td>
                     <td>{{ product.Description }}</td>
-                    <td><input type="number" name="price_{{ product.Product_ID }}" value="{{ product.price }}"></td>
+                    <td><input type="text" pattern="^\d+(\.\d{1,2})?$" name="price_{{ product.Product_ID }}" value="{{ '%.2f' % product.price }}"></td>
                     <td>{{ product.size }}</td>
                     <td>{{ product.color }}</td>
                     <td>{{ product.Quantity }}</td>

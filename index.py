@@ -1,10 +1,15 @@
 from datetime import timedelta, datetime, timezone
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_sqlalchemy import SQLAlchemy
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'secret_key'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://chris:sirhc@172.16.181.16/fp180'
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=15)
 db = SQLAlchemy(app)
 
@@ -95,24 +100,37 @@ def login():
 def cart():
     if 'user_id' not in session:
         return redirect(url_for('login'))
-    
+
     user_id = session['user_id']
-    user = User.query.get(user_id)
     cart_items = Cart.query.filter_by(user_id=user_id).all()
-    
     total_price = 0
-    
+
     for item in cart_items:
         product = Product.query.get(item.product_id)
-        if product is None:
-            flash(f'Product not found for cart item with ID: {item.id}', 'error')
+        if not product:
+            flash(f'Product not found for cart item ID: {item.id}', 'error')
             return redirect(url_for('home'))
-        
+
         item.product = product
-        item.total_price = item.quantity * product.price
+
+        # Process discount 
+        discount_percentage = 0
+        if product.discount:
+            try:
+                discount_clean = product.discount.strip().replace('%', '')
+                discount_percentage = float(discount_clean) / 100
+            except ValueError:
+                discount_percentage = 0
+
+        discounted_price = float(product.price) * (1 - discount_percentage)
+        item.discounted_price = round(discounted_price, 2)
+        item.total_price = round(item.quantity * item.discounted_price, 2)
+
         total_price += item.total_price
-    
+
+    total_price = round(total_price, 2)
     return render_template('cart.html', cart_items=cart_items, total_price=total_price)
+
 
 @app.route('/proceed_to_payment', methods=['GET', 'POST'])
 def proceed_to_payment():
@@ -129,17 +147,41 @@ def proceed_to_payment():
 
         for item in cart_items:
             product = item.product
-            if product.price is None:
-                flash(f'Price for item "{product.Title}" is not set. Please contact support.', 'error')
+            if not product or product.price is None:
+                flash(f'Invalid product or missing price for "{product.Title}".', 'error')
                 return redirect(url_for('cart'))
 
-            total_price += product.price * item.quantity
-            items.append(f"{product.Title} (Quantity: {item.quantity})")
+            if product.Quantity < item.quantity:
+                flash(f'Not enough stock for "{product.Title}". Available: {product.Quantity}', 'error')
+                return redirect(url_for('cart'))
 
-        order = OrderStatus(order_num=generate_order_number(), items=', '.join(items), total_price=f"${total_price:.2f}", status='Pending')
+            # Reduce stock
+            product.Quantity -= item.quantity
+
+            # Calculate discount
+            try:
+                discount_clean = product.discount.strip().replace('%', '') if product.discount else '0'
+                discount_percentage = float(discount_clean) / 100
+            except ValueError:
+                discount_percentage = 0
+
+            discounted_price = float(product.price) * (1 - discount_percentage)
+            item_total = round(discounted_price * item.quantity, 2)
+            total_price += item_total
+
+            items.append(f"{product.Title} (x{item.quantity}) @ ${discounted_price:.2f}")
+
+        # Create order
+        order = OrderStatus(
+            order_num=generate_order_number(),
+            items=', '.join(items),
+            total_price=f"${total_price:.2f}",
+            status='Pending'
+        )
         db.session.add(order)
         db.session.commit()
 
+        # Clear cart
         Cart.query.filter_by(user_id=user_id).delete()
         db.session.commit()
 
@@ -147,6 +189,8 @@ def proceed_to_payment():
         return redirect(url_for('order_receipt', order_num=order.order_num))
 
     return render_template('payment_form.html')
+
+
 
 def generate_order_number():
     return int(datetime.now().timestamp())
@@ -193,6 +237,7 @@ def register():
         email = request.form['email']
         password = request.form['password']
         account_type = request.form['account_type']
+        firstName = request.form.get('first_name')
         
         existing_user = User.query.filter_by(email=email).first()
         if existing_user:
@@ -201,6 +246,7 @@ def register():
         
         new_user = User(
             username=username,
+            first_name=firstName,
             email=email,
             password=password,
             type=account_type
@@ -354,45 +400,14 @@ def add_product():
     else:
         return redirect(url_for('admin'))
 
-@app.route('/delete_product', methods=['POST'])
-def delete_product():
-    if 'user_id' not in session or User.query.get(session['user_id']).type not in ['vendor', 'admin']:
-        return redirect(url_for('login'))
-
-    product_id = request.form['product_id']
-    product = Product.query.get(product_id)
-
-    if not product:
-        flash('Product not found', 'error')
-    elif product.vendor_id != session['user_id'] and User.query.get(session['user_id']).type != 'admin':
-        flash('You do not have permission to delete this product', 'error')
-    else:
-        db.session.delete(product)
-        db.session.commit()
-        flash('Product deleted successfully', 'success')
-
-    if User.query.get(session['user_id']).type == 'vendor':
-        return redirect(url_for('vendor'))
-    else:
-        return redirect(url_for('admin'))
-
 @app.route('/admin')
 def admin():
-    if 'user_id' not in session:
+    if 'user_id' not in session or User.query.get(session['user_id']).type != 'admin':
         return redirect(url_for('login'))
 
-    # Get the logged-in user
-    user = User.query.get(session['user_id'])
-
-    # Check if the user is an admin
-    if user.type != 'admin':
-        flash('Access denied. You do not have permission to access this page.', 'error')
-        return redirect(url_for('login'))
-
-    # Query all products
     products = Product.query.all()
 
-    return render_template('admin.html', user=user, products=products)
-
+    return render_template('admin.html', products=products)
+    
 if __name__ == '__main__':
     app.run(debug=True)

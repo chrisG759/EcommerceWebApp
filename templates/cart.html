@@ -3,68 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cart</title>
+    <title>Your Cart</title>
     <style>
         body {
             font-family: Arial, sans-serif;
+            background: #f8f8f8;
             margin: 0;
             padding: 0;
         }
         .container {
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 0 20px;
+            max-width: 900px;
+            margin: 40px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
         }
         h1 {
             text-align: center;
-            margin-bottom: 20px;
+            color: #333;
         }
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
+            margin: 25px 0;
         }
         th, td {
             border: 1px solid #ddd;
-            padding: 10px;
-            text-align: left;
+            padding: 12px;
+            text-align: center;
         }
         th {
             background-color: #f2f2f2;
-            padding: 10px; /* Add padding to table headings */
+            font-weight: bold;
         }
-        .actions {
-            text-align: center;
-            margin-top: 1cm;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+        .actions form {
+            margin: 0;
         }
-        .actions button {
-            background-color: #007bff; /* Blue color */
+        .btn {
+            background-color: #007bff;
             color: white;
             border: none;
             padding: 10px 20px;
-            text-decoration: none; /* Remove underline */
             border-radius: 4px;
             cursor: pointer;
-            transition: background-color 0.3s;
-            margin-bottom: 1cm; /* 1cm spacing */
+            margin: 10px;
+            text-decoration: none;
+            display: inline-block;
         }
-        .actions button:hover {
-            background-color: #0056b3; /* Darker shade on hover */
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        .total {
+            text-align: right;
+            font-size: 1.2em;
+            margin-top: 20px;
+        }
+        .buttons {
+            text-align: center;
+            margin-top: 30px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Your Cart</h1>
+        <h1>Your Shopping Cart</h1>
+        {% if cart_items %}
         <table>
             <thead>
                 <tr>
                     <th>Product</th>
                     <th>Quantity</th>
-                    <th>Actions</th> <!-- Removed class attribute -->
+                    <th>Price Per Item</th>
+                    <th>Total</th>
+                    <th>Remove</th>
                 </tr>
             </thead>
             <tbody>
@@ -72,21 +84,39 @@
                 <tr>
                     <td>{{ item.product.Title }}</td>
                     <td>{{ item.quantity }}</td>
+                    <td>
+                        {% if item.product.discount %}
+                            <span style="text-decoration: line-through;">${{ item.product.price }}</span><br>
+                            <span style="color: green;">${{ item.discounted_price }}</span><br>
+                            <small>({{ item.product.discount }} off)</small>
+                        {% else %}
+                            ${{ item.product.price }}
+                        {% endif %}
+                    </td>
+                    <td>${{ item.total_price }}</td>
                     <td class="actions">
-                        <form action="/remove_from_cart" method="post">
+                        <form action="{{ url_for('remove_from_cart') }}" method="POST">
                             <input type="hidden" name="cart_item_id" value="{{ item.id }}">
-                            <button type="submit">Remove</button>
+                            <button class="btn" type="submit">Remove</button>
                         </form>
                     </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
-        <div>Total Amount: ${{ total_price }}</div> <!-- Display total amount -->
-    </div>
-    <div class="actions">
-        <a href="/products"><button>Back To Shop</button></a>
-        <a href="/proceed_to_payment"><button>Proceed to Payment</button></a>
+        <div class="total">
+            <strong>Total Amount:</strong> ${{ total_price }}
+        </div>
+        <div class="buttons">
+            <a href="{{ url_for('products') }}" class="btn">Back To Shop</a>
+            <a href="{{ url_for('proceed_to_payment') }}" class="btn">Proceed to Payment</a>
+        </div>
+        {% else %}
+            <p>Your cart is empty.</p>
+            <div class="buttons">
+                <a href="{{ url_for('products') }}" class="btn">Browse Products</a>
+            </div>
+        {% endif %}
     </div>
 </body>
 </html>
